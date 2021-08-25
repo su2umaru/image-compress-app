@@ -1,8 +1,16 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
+import { useState } from 'react';
 
 export default function Home() {
+  const [beforeSize, setBeforeSize] = useState(0);
+
+  const handleChangeImage = (e) => {
+    const { files } = e.target;
+    setBeforeSize(files[0].size);
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -21,7 +29,13 @@ export default function Home() {
           <code className={styles.code}>pages/index.js</code>
         </p>
 
-        <input type="file" id="file" accept="image/*" />
+        <input
+          type="file"
+          id="file"
+          accept="image/*"
+          onChange={handleChangeImage}
+        />
+        <p>元のサイズ：{beforeSize} B</p>
       </main>
 
       <footer className={styles.footer}>
