@@ -2,13 +2,30 @@ import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useState } from 'react';
+import Compressor from 'compressorjs';
 
 export default function Home() {
   const [beforeSize, setBeforeSize] = useState(0);
+  const [afterSize, setAfterSize] = useState(0);
 
   const handleChangeImage = (e) => {
-    const { files } = e.target;
-    setBeforeSize(files[0].size);
+    const file = e.target.files[0];
+    setBeforeSize(file.size);
+
+    if (!file) {
+      return;
+    }
+
+    new Compressor(file, {
+      quality: 0,
+      // convertSize: 500000,
+      success(result) {
+        setAfterSize(result.size);
+      },
+      error(err) {
+        console.log(err.message);
+      },
+    });
   };
 
   return (
@@ -36,6 +53,7 @@ export default function Home() {
           onChange={handleChangeImage}
         />
         <p>元のサイズ：{beforeSize} B</p>
+        <p>圧縮後のサイズ：{afterSize} B</p>
       </main>
 
       <footer className={styles.footer}>
