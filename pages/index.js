@@ -1,8 +1,73 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
+import { useState } from 'react';
+import Compressor from 'compressorjs';
 
 export default function Home() {
+  const [beforeSize, setBeforeSize] = useState(0);
+  const [afterSize, setAfterSize] = useState(0);
+
+  const detectFileType = (arrayBuffer) => {
+    const arr = new Uint8Array(arrayBuffer).subarray(0, 4);
+    let header = '';
+
+    for (let i = 0; i < arr.length; ++i) {
+      header += arr[i].toString(16);
+    }
+
+    switch (true) {
+      case /^89504e47/.test(header):
+        return 'png';
+      case /^ffd8ff/.test(header):
+        return 'jpeg';
+    }
+  };
+
+  const handleChangeImage = (e) => {
+    const file = e.target.files[0];
+    setBeforeSize(file.size);
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const result = e.target.result;
+      const fileType = detectFileType(result);
+
+      switch (fileType) {
+        case 'png':
+          new Compressor(file, {
+            convertSize: 100000,
+            success(result) {
+              setAfterSize(result.size);
+              console.log(result.type);
+            },
+            error(err) {
+              console.log(err.message);
+            },
+          });
+          break;
+        case 'jpeg':
+          new Compressor(file, {
+            quality: 0,
+            success(result) {
+              setAfterSize(result.size);
+              console.log(result.type);
+            },
+            error(err) {
+              console.log(err.message);
+            },
+          });
+          break;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -21,35 +86,14 @@ export default function Home() {
           <code className={styles.code}>pages/index.js</code>
         </p>
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        <input
+          type="file"
+          id="file"
+          accept="image/*"
+          onChange={handleChangeImage}
+        />
+        <p>元のサイズ：{beforeSize} B</p>
+        <p>圧縮後のサイズ：{afterSize} B</p>
       </main>
 
       <footer className={styles.footer}>
