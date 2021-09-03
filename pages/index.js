@@ -8,6 +8,22 @@ export default function Home() {
   const [beforeSize, setBeforeSize] = useState(0);
   const [afterSize, setAfterSize] = useState(0);
 
+  const detectFileType = (arrayBuffer) => {
+    const arr = new Uint8Array(arrayBuffer).subarray(0, 4);
+    let header = '';
+
+    for (let i = 0; i < arr.length; ++i) {
+      header += arr[i].toString(16);
+    }
+
+    switch (true) {
+      case /^89504e47/.test(header):
+        return 'png';
+      case /^ffd8ff/.test(header):
+        return 'jpeg';
+    }
+  };
+
   const handleChangeImage = (e) => {
     const file = e.target.files[0];
     setBeforeSize(file.size);
@@ -16,16 +32,40 @@ export default function Home() {
       return;
     }
 
-    new Compressor(file, {
-      quality: 0,
-      // convertSize: 500000,
-      success(result) {
-        setAfterSize(result.size);
-      },
-      error(err) {
-        console.log(err.message);
-      },
-    });
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const result = e.target.result;
+      const fileType = detectFileType(result);
+
+      switch (fileType) {
+        case 'png':
+          new Compressor(file, {
+            convertSize: 100000,
+            success(result) {
+              setAfterSize(result.size);
+              console.log(result.type);
+            },
+            error(err) {
+              console.log(err.message);
+            },
+          });
+          break;
+        case 'jpeg':
+          new Compressor(file, {
+            quality: 0,
+            success(result) {
+              setAfterSize(result.size);
+              console.log(result.type);
+            },
+            error(err) {
+              console.log(err.message);
+            },
+          });
+          break;
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   return (
