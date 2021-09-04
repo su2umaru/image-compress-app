@@ -3,6 +3,7 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useState } from 'react';
 import Compressor from 'compressorjs';
+import FileSaver from 'file-saver';
 
 export default function Home() {
   const [beforeSize, setBeforeSize] = useState(0);
@@ -45,6 +46,7 @@ export default function Home() {
             success(result) {
               setAfterSize(result.size);
               console.log(result.type);
+              FileSaver.saveAs(result, 'image.jpg');
             },
             error(err) {
               console.log(err.message);
@@ -57,6 +59,7 @@ export default function Home() {
             success(result) {
               setAfterSize(result.size);
               console.log(result.type);
+              FileSaver.saveAs(result, 'image.jpg');
             },
             error(err) {
               console.log(err.message);
